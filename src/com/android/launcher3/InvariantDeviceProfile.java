@@ -56,6 +56,7 @@ import com.android.launcher3.util.MainThreadInitializedObject;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.util.window.WindowManagerProxy;
+import com.android.quickstep.SystemUiProxy;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -302,6 +303,13 @@ public class InvariantDeviceProfile {
         }
     }
 
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+        if (DeviceProfile.KEY_PHONE_TASKBAR.equals(key)) {
+            onConfigChanged(mContext);
+        }
+    }
+
     public static String getCurrentGridName(Context context) {
         return Utilities.isGridOptionsEnabled(context)
                 ? Utilities.getPrefs(context).getString(KEY_IDP_GRID_NAME, null) : null;
@@ -436,6 +444,10 @@ public class InvariantDeviceProfile {
     }
 
     private void onConfigChanged(Context context) {
+        onConfigChanged(context, false);
+    }
+
+    private void onConfigChanged(Context context, boolean taskbarChanged) {
         Object[] oldState = toModelState();
 
         // Re-init grid
@@ -444,7 +456,7 @@ public class InvariantDeviceProfile {
 
         boolean modelPropsChanged = !Arrays.equals(oldState, toModelState());
         for (OnIDPChangeListener listener : mChangeListeners) {
-            listener.onIdpChanged(modelPropsChanged);
+            listener.onIdpChanged(modelPropsChanged, taskbarChanged);
         }
     }
 
@@ -711,7 +723,7 @@ public class InvariantDeviceProfile {
         /**
          * Called when the device provide changes
          */
-        void onIdpChanged(boolean modelPropertiesChanged);
+        void onIdpChanged(boolean modelPropertiesChanged, boolean taskbarChanged);
     }
 
 
