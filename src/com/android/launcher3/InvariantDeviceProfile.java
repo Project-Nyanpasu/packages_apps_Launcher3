@@ -27,6 +27,8 @@ import android.annotation.TargetApi;
 import android.appwidget.AppWidgetHostView;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
@@ -56,6 +58,7 @@ import com.android.launcher3.util.MainThreadInitializedObject;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.util.window.WindowManagerProxy;
+import com.android.quickstep.SystemUiProxy;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -70,7 +73,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class InvariantDeviceProfile {
+public class InvariantDeviceProfile implements OnSharedPreferenceChangeListener {
 
     public static final String TAG = "IDP";
     // We do not need any synchronization for this variable as its only written on UI thread.
@@ -183,6 +186,8 @@ public class InvariantDeviceProfile {
 
     public Point defaultWallpaperSize;
     public Rect defaultWidgetPadding;
+
+    private Context mContext;
 
     private final ArrayList<OnIDPChangeListener> mChangeListeners = new ArrayList<>();
 
@@ -299,6 +304,13 @@ public class InvariantDeviceProfile {
             return TYPE_TABLET;
         } else {
             return TYPE_PHONE;
+        }
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+        if (DeviceProfile.KEY_PHONE_TASKBAR.equals(key)) {
+            onConfigChanged(mContext);
         }
     }
 
@@ -436,6 +448,10 @@ public class InvariantDeviceProfile {
     }
 
     private void onConfigChanged(Context context) {
+        onConfigChanged(context, false);
+    }
+
+    private void onConfigChanged(Context context, boolean taskbarChanged) {
         Object[] oldState = toModelState();
 
         // Re-init grid
@@ -444,7 +460,7 @@ public class InvariantDeviceProfile {
 
         boolean modelPropsChanged = !Arrays.equals(oldState, toModelState());
         for (OnIDPChangeListener listener : mChangeListeners) {
-            listener.onIdpChanged(modelPropsChanged);
+            listener.onIdpChanged(modelPropsChanged, taskbarChanged);
         }
     }
 
@@ -711,7 +727,7 @@ public class InvariantDeviceProfile {
         /**
          * Called when the device provide changes
          */
-        void onIdpChanged(boolean modelPropertiesChanged);
+        void onIdpChanged(boolean modelPropertiesChanged, boolean taskbarChanged);
     }
 
 
