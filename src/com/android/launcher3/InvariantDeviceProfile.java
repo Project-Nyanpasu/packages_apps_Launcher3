@@ -26,6 +26,8 @@ import android.annotation.TargetApi;
 import android.appwidget.AppWidgetHostView;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
@@ -46,6 +48,7 @@ import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.android.launcher3.lineage.icon.IconPackStore;
 import com.android.launcher3.model.DeviceGridState;
 import com.android.launcher3.provider.RestoreDbTask;
 import com.android.launcher3.util.DisplayController;
@@ -66,7 +69,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class InvariantDeviceProfile {
+public class InvariantDeviceProfile implements OnSharedPreferenceChangeListener {
 
     public static final String TAG = "IDP";
     // We do not need any synchronization for this variable as its only written on UI thread.
@@ -114,6 +117,7 @@ public class InvariantDeviceProfile {
     public int numFolderColumns;
     public float[] iconSize;
     public float[] iconTextSize;
+    public String iconPack;
     public int iconBitmapSize;
     public int fillResIconDpi;
     public @DeviceType int deviceType;
@@ -166,6 +170,8 @@ public class InvariantDeviceProfile {
     public Point defaultWallpaperSize;
     public Rect defaultWidgetPadding;
 
+    private Context mContext;
+
     private final ArrayList<OnIDPChangeListener> mChangeListeners = new ArrayList<>();
 
     @VisibleForTesting
@@ -174,10 +180,14 @@ public class InvariantDeviceProfile {
 
     @TargetApi(23)
     private InvariantDeviceProfile(Context context) {
+        mContext = context;
+
+        SharedPreferences prefs = Utilities.getPrefs(context);
+        prefs.registerOnSharedPreferenceChangeListener(this);
         String gridName = getCurrentGridName(context);
         String newGridName = initGrid(context, gridName);
         if (!newGridName.equals(gridName)) {
-            Utilities.getPrefs(context).edit().putString(KEY_IDP_GRID_NAME, newGridName).apply();
+            prefs.edit().putString(KEY_IDP_GRID_NAME, newGridName).apply();
         }
         new DeviceGridState(this).writeToPrefs(context);
 
@@ -276,6 +286,13 @@ public class InvariantDeviceProfile {
         }
     }
 
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+        if (IconPackStore.KEY_ICON_PACK.equals(key)) {
+            onConfigChanged(mContext);
+        }
+    }
+
     public static String getCurrentGridName(Context context) {
         return Utilities.isGridOptionsEnabled(context)
                 ? Utilities.getPrefs(context).getString(KEY_IDP_GRID_NAME, null) : null;
@@ -316,6 +333,7 @@ public class InvariantDeviceProfile {
         for (int i = 1; i < iconSize.length; i++) {
             maxIconSize = Math.max(maxIconSize, iconSize[i]);
         }
+        iconPack = new IconPackStore(context).getCurrent();
         iconBitmapSize = ResourceUtils.pxFromDp(maxIconSize, metrics);
         fillResIconDpi = getLauncherIconDensity(iconBitmapSize);
 
@@ -393,7 +411,7 @@ public class InvariantDeviceProfile {
 
     private Object[] toModelState() {
         return new Object[]{
-                numColumns, numRows, numDatabaseHotseatIcons, iconBitmapSize, fillResIconDpi,
+                numColumns, numRows, numDatabaseHotseatIcons, iconPack, iconBitmapSize, fillResIconDpi,
                 numDatabaseAllAppsColumns, dbFile};
     }
 
