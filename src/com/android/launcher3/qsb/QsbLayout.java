@@ -1,23 +1,29 @@
 package com.android.launcher3.qsb;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.util.AttributeSet;
+import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
+import android.widget.ImageView;
 import androidx.core.view.ViewCompat;
 import com.android.launcher3.BaseActivity;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.R;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.qsb.QsbContainerView;
+import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
-import android.view.View;
 
-public class QsbLayout extends FrameLayout {
+public class QsbLayout extends FrameLayout implements
+        SharedPreferences.OnSharedPreferenceChangeListener {
 
-    ImageButton lensIcon;
-    AssistantIconView assistantIcon;
+    ImageView mAssistantIcon;
+    ImageView mGoogleIcon;
+    ImageView mLensIcon;
     Context mContext;
 
     public QsbLayout(Context context, AttributeSet attrs) {
@@ -29,12 +35,17 @@ public class QsbLayout extends FrameLayout {
         super(context, attrs, defStyle);
         mContext = context;
     }
+
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-        assistantIcon = findViewById(R.id.mic_icon);
-        assistantIcon.setIcon();
-        lensIcon = findViewById(R.id.lens_icon);
+        mAssistantIcon = findViewById(R.id.mic_icon);
+        mGoogleIcon = findViewById(R.id.g_icon);
+        mLensIcon = findViewById(R.id.lens_icon);
+        setIcons();
+
+        Utilities.getPrefs(mContext).registerOnSharedPreferenceChangeListener(this);
+
         String searchPackage = QsbContainerView.getSearchWidgetPackageName(mContext);
         setOnClickListener(view -> {
             mContext.startActivity(new Intent("android.search.action.GLOBAL_SEARCH").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK).setPackage(searchPackage));
@@ -64,15 +75,34 @@ public class QsbLayout extends FrameLayout {
 
     }
 
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+        if (key.equals(Themes.KEY_THEMED_ICONS)) {
+            setIcons();
+        }
+    }
+
+    private void setIcons() {
+        if (Themes.isThemedIconEnabled(mContext)) {
+            mAssistantIcon.setImageResource(R.drawable.ic_mic_themed);
+            mGoogleIcon.setImageResource(R.drawable.ic_super_g_themed);
+            mLensIcon.setImageResource(R.drawable.ic_lens_themed);
+        } else {
+            mAssistantIcon.setImageResource(R.drawable.ic_mic_color);
+            mGoogleIcon.setImageResource(R.drawable.ic_super_g_color);
+            mLensIcon.setImageResource(R.drawable.ic_lens_color);
+        }
+    }
+
     private void setupLensIcon() {
         Intent lensIntent = Intent.makeMainActivity(new ComponentName("com.google.ar.lens", "com.google.vr.apps.ornament.app.lens.LensLauncherActivity")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
         if (getContext().getPackageManager().resolveActivity(lensIntent, 0) == null){
             return;
         }
-        lensIcon.setVisibility(View.VISIBLE);
-        lensIcon.setImageResource(R.drawable.ic_lens_color);
+        mLensIcon.setVisibility(View.VISIBLE);
+        mLensIcon.setImageResource(R.drawable.ic_lens_color);
 
-        lensIcon.setOnClickListener(view -> {
+        mLensIcon.setOnClickListener(view -> {
             mContext.startActivity(lensIntent);
         });
     }
