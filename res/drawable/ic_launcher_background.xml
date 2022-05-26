@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2022 The Project Nyanpasu
+
+     SPDX-License-Identifier: Apache-2.0
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+  <group android:scaleX="0.3672"
+      android:scaleY="0.3672"
+      android:translateX="-37.8"
+      android:translateY="-37.8">
+    <path
+        android:pathData="M0.06,250.06Q0.06,126.22 0,2.38C0,0.24 0.57,0 2.49,0Q250,0.09 497.58,0c2.06,0 2.41,0.45 2.41,2.45q-0.08,247.43 0,494.85c0,2.33 -0.64,2.7 -2.81,2.7q-247.42,-0.09 -494.84,0C0.54,500 0,499.69 0,497.74Q0.1,373.9 0.06,250.06Z"
+        android:fillColor="#59bfd2"/>
+  </group>
+</vector>
