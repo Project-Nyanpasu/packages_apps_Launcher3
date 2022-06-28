@@ -134,30 +134,31 @@ public class TaskMenuView extends AbstractFloatingView implements OnScrollChange
 
     private void setPosition(float x, float y, int overscrollShift) {
         PagedOrientationHandler pagedOrientationHandler = mTaskView.getPagedOrientationHandler();
-        // Inset due to margin
-        PointF additionalInset = pagedOrientationHandler
-                .getAdditionalInsetForTaskMenu(mTaskInsetMargin);
         DeviceProfile deviceProfile = mActivity.getDeviceProfile();
-        int taskTopMargin = deviceProfile.overviewTaskThumbnailTopMarginPx;
+        // Inset due to margin
+        if (pagedOrientationHandler != null) {
+            PointF additionalInset = pagedOrientationHandler
+                    .getAdditionalInsetForTaskMenu(mTaskInsetMargin);
+            int taskTopMargin = deviceProfile.overviewTaskThumbnailTopMarginPx;
 
-        float adjustedY = y + taskTopMargin - additionalInset.y;
-        float adjustedX = x - additionalInset.x;
-        // Changing pivot to make computations easier
-        // NOTE: Changing the pivots means the rotated view gets rotated about the new pivots set,
-        // which would render the X and Y position set here incorrect
-        setPivotX(0);
-        if (deviceProfile.overviewShowAsGrid) {
-            // In tablet, set pivotY to original position without mThumbnailTopMargin adjustment.
-            setPivotY(-taskTopMargin);
-        } else {
-            setPivotY(0);
+            float adjustedY = y + taskTopMargin - additionalInset.y;
+            float adjustedX = x - additionalInset.x;
+            // Changing pivot to make computations easier
+            // NOTE: Changing the pivots means the rotated view gets rotated about the new pivots set,
+            // which would render the X and Y position set here incorrect
+            setPivotX(0);
+            if (deviceProfile.overviewShowAsGrid) {
+                // In tablet, set pivotY to original position without mThumbnailTopMargin adjustment.
+                setPivotY(-taskTopMargin);
+            } else {
+                setPivotY(0);
+            }
+            setRotation(pagedOrientationHandler.getDegreesRotated());
+            setX(pagedOrientationHandler.getTaskMenuX(adjustedX,
+                    mTaskContainer.getThumbnailView(), overscrollShift, deviceProfile));
+            setY(pagedOrientationHandler.getTaskMenuY(
+                    adjustedY, mTaskContainer.getThumbnailView(), overscrollShift));
         }
-        setRotation(pagedOrientationHandler.getDegreesRotated());
-        setX(pagedOrientationHandler.getTaskMenuX(adjustedX,
-                mTaskContainer.getThumbnailView(), overscrollShift, deviceProfile));
-        setY(pagedOrientationHandler.getTaskMenuY(
-                adjustedY, mTaskContainer.getThumbnailView(), overscrollShift));
-
         // TODO(b/193432925) temporary menu placement for split screen task menus
         TaskIdAttributeContainer[] taskIdAttributeContainers =
                 mTaskView.getTaskIdAttributeContainers();

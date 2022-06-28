@@ -1368,7 +1368,10 @@ public class TaskView extends FrameLayout implements Reusable {
     }
 
     PagedOrientationHandler getPagedOrientationHandler() {
-        return getRecentsView().mOrientationState.getOrientationHandler();
+        if (getRecentsView() != null) {
+            return getRecentsView().mOrientationState.getOrientationHandler();
+        }
+        return null;
     }
 
     private void notifyTaskLaunchFailed(String tag) {
