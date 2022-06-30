@@ -26,4 +26,9 @@
     <!-- Gestures -->
     <string name="pref_dt_gesture_title">双击手势</string>
     <string name="pref_dt_gesture_summary">双击空白处以关闭屏幕</string>
+    <!-- Icon pack -->
+    <string name="icon_pack_title">图标包</string>
+    <string name="icon_pack_default_label">默认</string>
+    <string name="icon_pack_add">安装更多</string>
+    <string name="icon_pack_no_market">没有可用的应用商店</string>
 </resources>
